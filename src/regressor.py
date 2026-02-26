@@ -33,7 +33,7 @@ def sigmoid(z):
 class LogisticRegressor:
     def __init__(self, 
                  batch_size=1,
-                 learning_rate=0.0005,
+                 learning_rate=0.001,
                  num_epochs=100,
                  regularization_strength=0,
                  seed=None):
@@ -97,9 +97,6 @@ class LogisticRegressor:
     
     # prediction of logistic classifer use the sigmoid function
     def predict(self, X):
-        # Concatenate 1 for bias terms
-        # X = np.concatenate([np.ones((X.shape[0], 1)), X], axis=1)
-        return sigmoid(X @ self.weights)
         # Concatenate 1 for bias terms
         # X = np.concatenate([np.ones((X.shape[0], 1)), X], axis=1)
         return sigmoid(X @ self.weights)
