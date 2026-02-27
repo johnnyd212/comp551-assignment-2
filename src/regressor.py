@@ -35,12 +35,14 @@ class LogisticRegressor:
                  batch_size=1,
                  learning_rate=0.001,
                  num_epochs=100,
+                 momentum_rate=0,
                  regularization_strength=0,
                  seed=None):
         
         self.batch_size = batch_size
         self.learning_rate=learning_rate
         self.num_epochs=num_epochs
+        self.momentum_rate=momentum_rate
         self.regularization_strength = regularization_strength
 
         self.rng = np.random.default_rng(seed)
@@ -55,9 +57,13 @@ class LogisticRegressor:
             X = np.concatenate([np.ones((X.shape[0], 1)), X], axis=1)
         
         self.weights = self.rng.random((X.shape[1], 1))
+        momentum = np.zeros(self.weights.shape)
 
         if(learning_curve):
             errors = []
+
+        # weight update step count
+        t = 1
 
         for epoch_count in range(self.num_epochs):
             # Permutation to apply to our rows for stochasticity
@@ -66,11 +72,22 @@ class LogisticRegressor:
             for batch in itertools.batched(indices, self.batch_size):
                 # Convert to ndarray to trigger advanced indexing
                 ndbatch = np.asarray(batch)
+
+                # Momentum update
+                momentum = (
+                    self.momentum_rate * momentum + 
+                    (1 - self.momentum_rate) * self.loss_gradient(X[ndbatch], y[ndbatch])
+                )
+
+                # Because we initialize momentum to 0, our gradient updates are
+                # unduly biased towards 0 in the early update steps.
+                # We divide by a corrective term to fix this
+                unbiased_momentum = momentum / (1 - self.momentum_rate ** t)
+
                 # Weight update
-                try:
-                    self.weights -= self.learning_rate * self.loss_gradient(X[ndbatch], y[ndbatch])
-                except TypeError:
-                    print('Prediction error')
+                self.weights -= self.learning_rate * unbiased_momentum
+                
+                t += 1
 
 
             if(learning_curve):
